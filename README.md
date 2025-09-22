@@ -1,4 +1,4 @@
-# Microwatt Design Challenge Proposal: AES Accelerator for MicroWatt Core
+# Microwatt Design Challenge Proposal: `AES Accelerator for MicroWatt Core`
 
 ## Index
 - Section 1: Introduction
@@ -17,13 +17,14 @@
 AES is a type of block cipher that works with key sizes of 128/192/256 bits and encrypts data in blocks of 128 bits each. It takes 128 bits as input and outputs 128 bits of encrypted cipher text.
 Since the block size is 128 bits, the cipher processes 128 bits (or 16 bytes) of the input data at a time.The number of rounds depends on the key length . 
 
-[To insert pic]
+![](proposal_pics/AES1.jpg)
 
 A key Schedule algorithm is used to create keys for different rounds from the initial key. \
 AES considers each block as a 16-byte (4 X 4) grid in a column-major arrangement.
 Then the encryption begins and for each round it goes through 4 steps.
 
-[To insert pic]
+![](proposal_pics/aes2.jpeg)
+
 
 - **Sub Bytes:** This step involves substitution of each byte with another performed using a lookup table called the S-box. This substitution is done in a way that a byte is never substituted by itself and also not substituted by another byte which is a complement of the current byte.
  
@@ -38,12 +39,17 @@ Then the encryption begins and for each round it goes through 4 steps.
  
 - **Mix Columns:** This step is a matrix multiplication. Each column is multiplied with a specific matrix and thus the position of each byte in the column is changed as a result. This step is skipped in last round.
 - **Add Round Key:** The resultant output of the previous stage is XOR-ed with the corresponding round key.
-  
-  After n rounds, we get our ciphertext. The decryption process is simply the reverse of the encryption steps:
-  [To insert pic]
+
+After n rounds, we get our ciphertext. The **decryption** process is simply the reverse of the encryption steps:
+
+![](proposal_pics/aes3.png)
+
+</br>
 
 ### 1.2 System level block diagram
-  [to insert pic]
+
+![](proposal_pics/4.jpeg)
+ 
 
 ### 1.3 Key Design Philosophy
 This AES accelerator is designed for resource-constrained environments where minimizing hardware area and power consumption is more critical than achieving maximum throughput. The core design principles are simplicity, efficiency, and low footprint supporting AES-128, AES-192, and AES-256 encryption/decryption modes.
@@ -55,15 +61,31 @@ This AES accelerator is designed for resource-constrained environments where min
 
 **Target Applications:** Embedded systems, IoT security modules, and low-power microcontrollers requiring compact and efficient AES coprocessor with full standard compliance.
 
- ## Overview of all Hardware Blocks
+
+## Overview of all Hardware Blocks
 
 ### 2.1 AES Cipher Block/Encryption Core
 
 #### 2.1.1 Higher Level Block Diagram
-[to insert pic]
 
-**Input/Output Signals:**\
-[to insert table]
+![](proposal_pics/5.jpeg)
+
+**Input/Output Signals:**
+
+| Signal Name      | Direction | Width | Description                              |
+|------------------|-----------|-------|------------------------------------------|
+| clk              | Input     | 1     | System clock                             |
+| rst_n            | Input     | 1     | Active-low reset                         |
+| data_in          | Input     | 128   | Plain/cipher text input                  |
+| key_in           | Input     | 256   | AES key input (padded for smaller keys)  |
+| key_size_select  | Input     | 2     | Key size (00:128, 01:192, 10:256)        |
+| op_mode_select   | Input     | 1     | Operation mode (0:Encrypt, 1:Decrypt)    |
+| start_operation  | Input     | 1     | Start encryption/decryption              |
+| data_out         | Output    | 128   | Cipher/plain text output                 |
+| operation_done   | Output    | 1     | Operation complete                       |
+| round_cnt        | Internal  | 4     | Current round counter (0-14)             |
+| max_rounds       | Internal  | 4     | Maximum rounds based on key size         |
+
 
 #### 2.1.2 SubBytes using S-box (Parallel 16-Unit Implementation)
 - **Justification:** 16 parallel S-box units for encryption and 16 parallel inverse S-box units for decryption provide optimal throughput by processing the entire 128-bit state in a single clock cycle. This eliminates the serialization bottleneck and significantly improves performance. Each S-box is implemented as a 256x8-bit ROM, totaling 32 ROM blocks (16 forward + 16 inverse). The area cost is justified by the substantial cycle count reduction.
@@ -75,37 +97,74 @@ This AES accelerator is designed for resource-constrained environments where min
    - **Simplifies control FSM** with no SubBytes serialization states
 
 - **Block Diagram:**
-- [to insert pic]
 
-- **Input/Output Signals:**\
-[to insert table]
+![](proposal_pics/6.jpeg)
+
+
+- **Input/Output Signals:**
+
+| Signal Name | Direction | Width | Description                   |
+|-------------|-----------|-------|-------------------------------|
+| state_in    | Input     | 128   | Full 128-bit state input      |
+| op_mode     | Input     | 1     | 0:SubBytes, 1:InvSubBytes     |
+| enable      | Input     | 1     | Enable S-box operation        |
+| state_out   | Output    | 128   | Substituted 128-bit state output |
+
 
 
 #### 2.1.3 ShiftRows
 
 - **Justification:** Wire permutation with multiplexer for forward/inverse row shifting. Combinatorial logic with zero latency.
-- **Block Diagram:**\
-  [to insert pic]
+- **Block Diagram:**
 
-- **Input/Output Signals:**\
-  [to insert table]
+![](proposal_pics/7.jpeg)
+
+
+- **Input/Output Signals:**
+
+| Signal Name | Direction | Width | Description                  |
+|-------------|-----------|-------|------------------------------|
+| state_in    | Input     | 128   | Input state matrix           |
+| op_mode     | Input     | 1     | 0:ShiftRows, 1:InvShiftRows  |
+| state_out   | Output    | 128   | Shifted state matrix         |
+
 
 
 #### 2.1.4 MixColumns (Serial Implementation)
 - **Justification:** Single shared Galois Field multiplier handles both MixColumns and InvMixColumns operations. FSM controls coefficient selection and accumulation pattern based on operation mode. Significant area savings compared to parallel implementation.
-- **Block Diagram:**\
-  [to insert pic]
+- **Block Diagram:**
 
-- **Input/Output Signals:**\
-  [to insert table]
+![](proposal_pics/8.jpeg)
+
+
+- **Input/Output Signals:**
+
+| Signal Name | Direction | Width | Description                                                  |
+|-------------|-----------|-------|--------------------------------------------------------------|
+| clk         | Input     | 1     | System clock driving FSM, counters, and registers            |
+| rst_n       | Input     | 1     | Active-low reset, initializes FSM and clears registers       |
+| col_in      | Input     | 32    | Input column (4 bytes: s0..s3) to be transformed             |
+| op_mode     | Input     | 1     | Operation mode: 0 = MixColumns, 1 = InvMixColumns            |
+| mix_start   | Input     | 1     | Start signal; begins MixColumns operation                    |
+| col_out     | Output    | 32    | Mixed output column (4 bytes after transformation)           |
+| mix_done    | Output    | 1     | Indicates MixColumns/InvMixColumns operation is complete     |
+| busy        | Output    | 1     | High while operation is in progress; low when idle           |
 
 #### 2.1.5 AddRoundKey
 - **Justification:** Simple XOR operation, combinatorial implementation with zero latency. Same logic works for all key sizes and both encryption/decryption.
-- **Block Diagram:**\
-  [to insert pic]
+- **Block Diagram:**
 
-- **Input/Output Signals:**\
-  [to insert table]
+![](proposal_pics/9.jpeg)
+
+
+- **Input/Output Signals:**
+
+| Signal Name | Direction | Width | Description              |
+|-------------|-----------|-------|--------------------------|
+| state_in    | Input     | 128   | Current state            |
+| round_key   | Input     | 128   | Current round key        |
+| state_out   | Output    | 128   | State after key addition |
+
 
 ### 2.2 Introduction to AES Key Schedule Implementation
 
@@ -115,7 +174,10 @@ The AES (Advanced Encryption Standard) algorithm requires the generation of mult
 We have used Dynamic Pipelined Approach in which the key schedule logic is broken down into multiple pipeline stages, with registers inserted between operations. This design allows higher clock frequencies by splitting the critical path and enables concurrent processing of multiple pipeline stages. The dynamic pipelined method utilizes logic-based computations of S-boxes and other transformations, providing much higher throughput and scalability suitable for high-performance AES co-processors.
 
 #### 2.2.2 Block Diagram
-[to insert pic]
+
+![](proposal_pics/10.jpeg)
+
+![](proposal_pics/11.jpeg)
 
 #### 2.2.3 Implementation
 **1. Input Key Interface Block**
@@ -158,10 +220,27 @@ We have used Dynamic Pipelined Approach in which the key schedule logic is broke
 
 ### 2.3 Control Unit
 - **Justification:** Master FSM with configurable round handling and comprehensive error detection. Manages variable round counts and operation sequencing for all AES variants.
--  **Block Diagram:**\
-  [to insert pic]
--  **Input/Output Signals:**\
-  [to insert pic]
+-  **Block Diagram:**
+
+![](proposal_pics/12.jpeg)
+
+-  **Input/Output Signals:**
+
+| Signal Name       | Direction | Width | Description                 |
+|-------------------|-----------|-------|-----------------------------|
+| clk               | Input     | 1     | System clock                |
+| reset             | Input     | 1     | System reset                |
+| key_size_select   | Input     | 2     | Key size selection          |
+| op_mode_select    | Input     | 1     | Operation mode              |
+| start_operation   | Input     | 1     | Start signal                |
+| key_ready         | Input     | 1     | Key expansion complete       |
+| mc_done           | Input     | 1     | MixColumns complete          |
+| enable_datapath   | Output    | 1     | Enable datapath registers    |
+| start_mc          | Output    | 1     | Start MixColumns             |
+| select_rkey       | Output    | 4     | Round key selector           |
+| operation_done    | Output    | 1     | Operation complete           |
+| error             | Output    | 1     | Error detected               |
+
 
 ### 2.4 Interface Unit
 - **Justification:** Standard Wishbone slave interface for seamless MicroWatt integration following proper bus protocol handshaking. Memory-mapped registers for configuration, control, status monitoring, and DMA-based data transfer. The interface supports both direct register access and DMA operations for efficient bulk data processing. Following are the components of Interface Unit.
@@ -171,6 +250,8 @@ We have used Dynamic Pipelined Approach in which the key schedule logic is broke
    4. 	DMA
  
 - **Block Diagram:**
+
+![](proposal_pics/13.jpeg)
 
 #### Wishbone Bus Protocol Implementation:
 **Write Cycle Flow (CPU → AES)**\
@@ -198,11 +279,14 @@ We have used Dynamic Pipelined Approach in which the key schedule logic is broke
 
 
 #### Register Field Definitions:
+
 **CONTROL Register**
 - **Bit 0:** START - Write 1 to begin AES operation
 - **Bit 1:** MODE - 0=Encrypt, 1=Decrypt
 - **Bits 3:2:** KEY_SIZE - 00=AES-128, 01=AES-192, 10=AES-256
 - **Bits 31:4:** Reserved
+
+
 **STATUS Register**
 - **Bit 0:** BUSY - 1=Accelerator currently working
 - **Bit 1:** DONE - 1=Operation completed (generates interrupt if enabled)
@@ -211,8 +295,30 @@ We have used Dynamic Pipelined Approach in which the key schedule logic is broke
 - **Bits 31:4:** Reserved
 
 #### Input/Output Signals:
-[to insert table]
+
+| Signal Name  | Direction | Width | Description                          |
+|--------------|-----------|-------|--------------------------------------|
+| wb_clk_i     | Input     | 1     | Wishbone clock                       |
+| wb_rst_i     | Input     | 1     | Wishbone reset                       |
+| wb_adr_i     | Input     | 8     | Register address (byte addressing)   |
+| wb_dat_i     | Input     | 32    | Write data bus                       |
+| wb_dat_o     | Output    | 32    | Read data bus                        |
+| wb_we_i      | Input     | 1     | Write enable (1=write, 0=read)       |
+| wb_stb_i     | Input     | 1     | Strobe signal (valid transfer)       |
+| wb_cyc_i     | Input     | 1     | Cycle signal (valid bus cycle)       |
+| wb_ack_o     | Output    | 1     | Acknowledge (transfer complete)      |
+| wb_err_o     | Output    | 1     | Bus error (invalid address/operation)|
+| interrupt_o  | Output    | 1     | Completion interrupt to CPU          |
+
 
 #### DMA Interface Extensions:
-[to insert table]
+| Signal Name | Direction | Width | Description              |
+|-------------|-----------|-------|--------------------------|
+| dma_req_o   | Output    | 1     | DMA request signal       |
+| dma_ack_i   | Input     | 1     | DMA acknowledge from system |
+| dma_addr_o  | Output    | 64    | DMA memory address       |
+| dma_data_i  | Input     | 32    | DMA read data            |
+| dma_data_o  | Output    | 32    | DMA write data           |
+| dma_we_o    | Output    | 1     | DMA write enable         |
+| dma_be_o    | Output    | 4     | DMA byte enable          |
 
