@@ -1,15 +1,15 @@
 # Microwatt Design Challenge Proposal: `AES Accelerator for MicroWatt Core`
 
 ## Index
-- Section 1: Introduction
-   - 1.1) Algorithm summary
-   - 1.2) System level block diagram
-   - 1.3) Key Design Philosophy
-- Section 2: Overview of all Hardware Blocks
-   - 2.1) AES Cipher Block/Encryption Core
-   - 2.2) Introduction to AES Key Schedule Implementation
-   - 2.3) Control Unit
-   - 2.4) Interface Unit
+- [Section 1: Introduction](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#introduction)
+   - [1.1) Algorithm summary](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#11-algorithm-summary)
+   - [1.2) System level block diagram](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#11-algorithm-summary)
+   - [1.3) Key Design Philosophy](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#13-key-design-philosophy)
+- [Section 2: Overview of all Hardware Blocks](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#overview-of-all-hardware-blocks)
+   - [2.1) AES Cipher Block/Encryption Core](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#21-aes-cipher-blockencryption-core)
+   - [2.2) Introduction to AES Key Schedule Implementation](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#22-introduction-to-aes-key-schedule-implementation)
+   - [2.3) Control Unit](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#23-control-unit)
+   - [2.4) Interface Unit](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#24-interface-unit)
 
 ## Introduction
 
