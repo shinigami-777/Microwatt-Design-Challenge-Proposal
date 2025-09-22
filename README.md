@@ -1,15 +1,15 @@
 # Microwatt Design Challenge Proposal: `AES Accelerator for MicroWatt Core`
 
 ## Index
-- [Section 1: Introduction](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#introduction)
-   - [1.1) Algorithm summary](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#11-algorithm-summary)
-   - [1.2) System level block diagram](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#11-algorithm-summary)
-   - [1.3) Key Design Philosophy](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#13-key-design-philosophy)
-- [Section 2: Overview of all Hardware Blocks](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#overview-of-all-hardware-blocks)
-   - [2.1) AES Cipher Block/Encryption Core](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#21-aes-cipher-blockencryption-core)
-   - [2.2) Introduction to AES Key Schedule Implementation](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#22-introduction-to-aes-key-schedule-implementation)
-   - [2.3) Control Unit](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#23-control-unit)
-   - [2.4) Interface Unit](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/edit/main/README.md#24-interface-unit)
+- [Section 1: Introduction](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/?tab=readme-ov-file#introduction)
+   - [1.1) Algorithm summary](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/?tab=readme-ov-file#11-algorithm-summary)
+   - [1.2) System level block diagram](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/?tab=readme-ov-file#11-algorithm-summary)
+   - [1.3) Key Design Philosophy](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/?tab=readme-ov-file#13-key-design-philosophy)
+- [Section 2: Overview of all Hardware Blocks](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/?tab=readme-ov-file#overview-of-all-hardware-blocks)
+   - [2.1) AES Cipher Block/Encryption Core](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/?tab=readme-ov-file#21-aes-cipher-blockencryption-core)
+   - [2.2) Introduction to AES Key Schedule Implementation](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/?tab=readme-ov-file#22-introduction-to-aes-key-schedule-implementation)
+   - [2.3) Control Unit](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/?tab=readme-ov-file#23-control-unit)
+   - [2.4) Interface Unit](https://github.com/shinigami-777/Microwatt-Design-Challenge-Proposal/?tab=readme-ov-file#24-interface-unit)
 
 ## Introduction
 
@@ -31,10 +31,10 @@ Then the encryption begins and for each round it goes through 4 steps.
 - **Shift Rows:** A circular left shift is performed in this step.
  
 ```
-                     	[ b0 | b1 | b2 | b3 ]                      [ b0 | b1 | b2 | b3 ]
-                     	| b4 | b5 | b6 | b7 |         --->    	   | b5 | b6 | b7 | b4 |
-                     	| b8 | b9 | b10 | b11 |              	   | b10 | b11 | b8 | b9 |
-                     	[ b12 | b13 | b14 | b15]           	       [ b15 | b12 | b13 | b14 ]
+               [ b0 | b1 | b2 | b3 ]                       [ b0 | b1 | b2 | b3 ]
+               | b4 | b5 | b6 | b7 |         --->    	   | b5 | b6 | b7 | b4 |
+               | b8 | b9 | b10 | b11 |              	   | b10 | b11 | b8 | b9 |
+               [ b12 | b13 | b14 | b15]           	       [ b15 | b12 | b13 | b14 ]
 ```
  
 - **Mix Columns:** This step is a matrix multiplication. Each column is multiplied with a specific matrix and thus the position of each byte in the column is changed as a result. This step is skipped in last round.
