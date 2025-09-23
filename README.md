@@ -322,3 +322,10 @@ We have used Dynamic Pipelined Approach in which the key schedule logic is broke
 | dma_we_o    | Output    | 1     | DMA write enable         |
 | dma_be_o    | Output    | 4     | DMA byte enable          |
 
+
+## Team Members
+- Garima Pant
+- Ritwik Rai
+- Shreya
+- Shreyansh
+- Tamaghna
